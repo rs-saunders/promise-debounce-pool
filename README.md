@@ -7,7 +7,7 @@ at which point on the next call, it creates a new promise
 
 This is useful if you want to limit the number of identical api requests in quick succession.
 
-Calls between different promises in the pool are performed synchronously (one after the other).
+Calls between different promises in the pool are chained synchronously (one after the other).
 If a call to get a promise from the pool occurs while different promise (one with a different key) is 'pending'
 the second call is waits for the other 'pending' promise to resolve/reject before starting.
 (it chains the second call using .then off of the previous call)
