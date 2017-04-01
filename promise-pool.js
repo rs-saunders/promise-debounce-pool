@@ -35,7 +35,7 @@
  *    setTimeout(function() {
  *      var call5 = promisePool.get('foo'); //starts a new foo promise (since previous foo promise has now resolved)
  *      var call6 = promisePool.get('bar'); //returns the same bar promise from before, now pending
- *    }, 1000);
+ *    }, 1500);
  *
  *    //RESULTS IN:
  *    //Two foo promises created, with the second foo call sharing the first
@@ -102,11 +102,11 @@ PromisePool.prototype.get = function(key) {
     function createPromise() {
         var resolver = _this.resolver[key];
         if (typeof resolver !== 'function') {
-            return exports.Promise.reject(
+            return Promise.reject(
                 new TypeError('Promise resolver ' + resolver + ' is not a function for key ' + key)
             );
         }
-        return new exports.Promise(resolver)
+        return new Promise(resolver)
             .then(function(success) {
                 delete _this.promise[key];
                 delete _this.pending;
@@ -119,4 +119,4 @@ PromisePool.prototype.get = function(key) {
     }
 };
 
-exports.PromisePool = PromisePool;
+module.exports = PromisePool;
