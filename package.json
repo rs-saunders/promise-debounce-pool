@@ -4,8 +4,11 @@
   "description": "maintain a pool of promises ",
   "main": "promise-pool.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jasmine"
   },
   "author": "Richard Saunders <richard@sdevsolutions.com>",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "jasmine": "^2.5.3"
+  }
 }

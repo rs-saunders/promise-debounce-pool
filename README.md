@@ -50,6 +50,13 @@ setTimeout(function() {
 //One bar promise created with the second and third bar calls sharing the first
 ```
 
+## Tests:
+
+```
+npm install
+npm test
+```
+
 ## Methods:
 
 ### set
