@@ -213,5 +213,118 @@ describe("PromisePool", function() {
                         });
                 });
             });
+
+        it('returns new resolved promises with data from the resolver', function(done) {
+            var increment = 0;
+            var promisePool = new PromisePool();
+            var observer = {
+                resolver: function(resolve) {
+                    resolve(++increment);
+                }
+            };
+            var resolverSpy = spyOn(observer, 'resolver').and.callThrough();
+
+            promisePool.set('promise_key_here', resolverSpy);
+            promisePool.get('promise_key_here')
+                .then(function(actualData) {
+                    expect(actualData).toBe(1);
+                    expect(resolverSpy).toHaveBeenCalledTimes(1);
+                });
+
+            setTimeout(function() {
+                promisePool.get('promise_key_here')
+                    .then(function (actualData) {
+                        expect(actualData).toBe(2);
+                        expect(resolverSpy).toHaveBeenCalledTimes(2);
+                    });
+            }, 10);
+
+            setTimeout(function() {
+                promisePool.get('promise_key_here')
+                    .then(function (actualData) {
+                        expect(actualData).toBe(3);
+                        expect(resolverSpy).toHaveBeenCalledTimes(3);
+                        done();
+                    });
+            }, 20);
+        });
+    });
+
+    describe('multiple calls to get with different keys after promise resolved', function () {
+
+        it('returns new resolved promises with data from the resolver', function(done) {
+
+            var expectedDataFromA = 'data from promise A';
+            var expectedDataFromB = 'data from promise B';
+            var promisePool = new PromisePool();
+
+            jasmine.clock().install();
+
+            promisePool.set('promiseA', function (resolve) {
+                setTimeout(function () {
+                    resolve(expectedDataFromA);
+                }, 100);
+            });
+
+            promisePool.set('promiseB', function (resolve, reject) {
+                setTimeout(function () {
+                    resolve(expectedDataFromB);
+                }, 100);
+            });
+
+            promisePool.get('promiseA')
+                .then(function(actualDataFromA) {
+                    expect(actualDataFromA).toBe(expectedDataFromA);
+                });
+
+            jasmine.clock().tick(101);
+
+            promisePool.get('promiseB')
+                .then(function(actualDataFromB) {
+                    expect(actualDataFromB).toBe(expectedDataFromB);
+                    done();
+                });
+
+            jasmine.clock().tick(101);
+            jasmine.clock().uninstall();
+        });
+
+        it('chains second promise after the first when still pending', function(done) {
+            var promisePool = new PromisePool();
+            var observer = {
+                resolverA: function(resolve) {
+                    setTimeout(function () {
+                        resolve();
+                    }, 100);
+                },
+                resolverB: function(resolve) {
+                    setTimeout(function () {
+                        resolve();
+                    }, 100);
+                }
+            };
+            var resolverSpyA = spyOn(observer, 'resolverA').and.callThrough();
+            var resolverSpyB = spyOn(observer, 'resolverB').and.callThrough();
+
+            jasmine.clock().install();
+
+            promisePool.set('promiseA', resolverSpyA);
+            promisePool.set('promiseB', resolverSpyB);
+
+            promisePool.get('promiseA');
+
+            promisePool.get('promiseB')
+                .then(function() {
+                    expect(resolverSpyA).toHaveBeenCalledTimes(1);
+                    expect(resolverSpyB).toHaveBeenCalledTimes(1);
+                    done();
+                });
+
+            expect(resolverSpyA).toHaveBeenCalledTimes(1);
+            expect(resolverSpyB).toHaveBeenCalledTimes(0);
+
+            jasmine.clock().tick(101);
+            jasmine.clock().uninstall();
+        });
     });
 });
