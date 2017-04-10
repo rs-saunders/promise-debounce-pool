@@ -252,7 +252,7 @@ describe("PromisePool", function() {
 
     describe('multiple calls to get with different keys after promise resolved', function () {
 
-        it('returns new resolved promises with data from the resolver', function(done) {
+        it('returns new resolved promises with data from the resolver', function (done) {
 
             var expectedDataFromA = 'data from promise A';
             var expectedDataFromB = 'data from promise B';
@@ -273,14 +273,14 @@ describe("PromisePool", function() {
             });
 
             promisePool.get('promiseA')
-                .then(function(actualDataFromA) {
+                .then(function (actualDataFromA) {
                     expect(actualDataFromA).toBe(expectedDataFromA);
                 });
 
             jasmine.clock().tick(101);
 
             promisePool.get('promiseB')
-                .then(function(actualDataFromB) {
+                .then(function (actualDataFromB) {
                     expect(actualDataFromB).toBe(expectedDataFromB);
                     done();
                 });
@@ -288,16 +288,19 @@ describe("PromisePool", function() {
             jasmine.clock().tick(101);
             jasmine.clock().uninstall();
         });
+    });
 
-        it('chains second promise after the first when still pending', function(done) {
+    describe('multiple calls to get with different keys while still pending', function () {
+
+        it('chains second promise after the first', function (done) {
             var promisePool = new PromisePool();
             var observer = {
-                resolverA: function(resolve) {
+                resolverA: function (resolve) {
                     setTimeout(function () {
                         resolve();
                     }, 100);
                 },
-                resolverB: function(resolve) {
+                resolverB: function (resolve) {
                     setTimeout(function () {
                         resolve();
                     }, 100);
@@ -311,17 +314,175 @@ describe("PromisePool", function() {
             promisePool.set('promiseA', resolverSpyA);
             promisePool.set('promiseB', resolverSpyB);
 
-            promisePool.get('promiseA');
+            promisePool.get('promiseA')
+                .then(function () {
+                    expect(resolverSpyA).toHaveBeenCalledTimes(1);
+                    expect(resolverSpyB).toHaveBeenCalledTimes(0);
+                    done();
+                });
 
             promisePool.get('promiseB')
-                .then(function() {
+                .then(function () {
                     expect(resolverSpyA).toHaveBeenCalledTimes(1);
                     expect(resolverSpyB).toHaveBeenCalledTimes(1);
                     done();
                 });
 
-            expect(resolverSpyA).toHaveBeenCalledTimes(1);
-            expect(resolverSpyB).toHaveBeenCalledTimes(0);
+            jasmine.clock().tick(101);
+            jasmine.clock().uninstall();
+        });
+
+        it('chains third promise after the second, etc...', function (done) {
+            var promisePool = new PromisePool();
+            var observer = {
+                resolverA: function (resolve) {
+                    setTimeout(function () {
+                        resolve();
+                    }, 100);
+                },
+                resolverB: function (resolve) {
+                    setTimeout(function () {
+                        resolve();
+                    }, 100);
+                },
+                resolverC: function (resolve) {
+                    setTimeout(function () {
+                        resolve();
+                    }, 100);
+                }
+            };
+            var resolverSpyA = spyOn(observer, 'resolverA').and.callThrough();
+            var resolverSpyB = spyOn(observer, 'resolverB').and.callThrough();
+            var resolverSpyC = spyOn(observer, 'resolverC').and.callThrough();
+
+            jasmine.clock().install();
+
+            promisePool.set('promiseA', resolverSpyA);
+            promisePool.set('promiseB', resolverSpyB);
+            promisePool.set('promiseC', resolverSpyC);
+
+            promisePool.get('promiseA')
+                .then(function () {
+                    expect(resolverSpyA).toHaveBeenCalledTimes(1);
+                    expect(resolverSpyB).toHaveBeenCalledTimes(0);
+                    expect(resolverSpyC).toHaveBeenCalledTimes(0);
+                });
+
+            promisePool.get('promiseB')
+                .then(function () {
+                    expect(resolverSpyA).toHaveBeenCalledTimes(1);
+                    expect(resolverSpyB).toHaveBeenCalledTimes(1);
+                    expect(resolverSpyC).toHaveBeenCalledTimes(0);
+                });
+
+
+            promisePool.get('promiseC')
+                .then(function () {
+                    expect(resolverSpyA).toHaveBeenCalledTimes(1);
+                    expect(resolverSpyB).toHaveBeenCalledTimes(1);
+                    expect(resolverSpyC).toHaveBeenCalledTimes(1);
+                    done();
+                });
+
+            jasmine.clock().tick(101);
+            jasmine.clock().uninstall();
+        });
+
+        it('shares same promise even between other calls', function (done) {
+            var promisePool = new PromisePool();
+            var observer = {
+                resolverA: function (resolve) {
+                    setTimeout(function () {
+                        resolve();
+                    }, 100);
+                },
+                resolverB: function (resolve) {
+                    setTimeout(function () {
+                        resolve();
+                    }, 100);
+                }
+            };
+            var resolverSpyA = spyOn(observer, 'resolverA').and.callThrough();
+            var resolverSpyB = spyOn(observer, 'resolverB').and.callThrough();
+
+            jasmine.clock().install();
+
+            promisePool.set('promiseA', resolverSpyA);
+            promisePool.set('promiseB', resolverSpyB);
+
+            promisePool.get('promiseA')
+                .then(function () {
+                    expect(resolverSpyA).toHaveBeenCalledTimes(1);
+                    expect(resolverSpyB).toHaveBeenCalledTimes(0);
+                });
+
+            promisePool.get('promiseB')
+                .then(function () {
+                    expect(resolverSpyA).toHaveBeenCalledTimes(1);
+                    expect(resolverSpyB).toHaveBeenCalledTimes(1);
+                });
+
+            promisePool.get('promiseA')
+                .then(function () {
+                    expect(resolverSpyA).toHaveBeenCalledTimes(1);
+                    expect(resolverSpyB).toHaveBeenCalledTimes(1);
+                    done();
+                });
+
+            jasmine.clock().tick(101);
+            jasmine.clock().uninstall();
+        });
+    });
+
+    describe('multiple chained calls', function () {
+
+        it('maintain separate resolve, reject states and data', function (done) {
+            var expectedError = 'Error thrown by promiseA';
+            var expectedData = 'Data returned by promiseB';
+            var promisePool = new PromisePool();
+            var observer = {
+                resolverA: function (resolve, reject) {
+                    setTimeout(function () {
+                        reject(expectedError);
+                    }, 100);
+                },
+                resolverB: function (resolve) {
+                    setTimeout(function () {
+                        resolve(expectedData);
+                    }, 100);
+                }
+            };
+            var resolverSpyA = spyOn(observer, 'resolverA').and.callThrough();
+            var resolverSpyB = spyOn(observer, 'resolverB').and.callThrough();
+
+            jasmine.clock().install();
+
+            promisePool.set('promiseA', resolverSpyA);
+            promisePool.set('promiseB', resolverSpyB);
+
+            promisePool.get('promiseA')
+                .then(function () {
+                    throw new Error('promise did not reject');
+                })
+                .catch(function(expectedError) {
+                    expect(expectedError).toBe(expectedError);
+                });
+
+            promisePool.get('promiseB')
+                .then(function (expectedData) {
+                    expect(expectedData).toBe(expectedData);
+                    done();
+                });
+
+            jasmine.clock().tick(101);
+
+            promisePool.get('promiseA')
+                .then(function () {
+                    throw new Error('promise did not reject');
+                })
+                .catch(function(expectedError) {
+                    expect(expectedError).toBe(expectedError);
+                });
 
             jasmine.clock().tick(101);
             jasmine.clock().uninstall();
