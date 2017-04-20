@@ -67,7 +67,7 @@ setTimeout(function() {
 
  var fooCall3 = promisePool.get('foo'); //starts a new foo promise (since previous fooCall1 promise has now resolved)
     .then(function(fooData) {
-        //... (data from new fooBar3 call)
+        //... (data from new fooCall3 promise)
     }); 
 
 
