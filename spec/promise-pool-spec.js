@@ -1,4 +1,4 @@
-var PromisePool = require('../promise-pool');
+var PromisePool = require('../promise-debounce-pool');
 
 describe("PromisePool", function() {
     describe("call to get", function() {

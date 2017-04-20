@@ -1,8 +1,8 @@
 {
-  "name": "promise-pool",
-  "version": "1.1.0",
-  "description": "maintain a pool of promises ",
-  "main": "promise-pool.js",
+  "name": "promise-debounce-pool",
+  "version": "1.2.0",
+  "description": "Maintains a pool of leading edge debounced promises.",
+  "main": "promise-debounce-pool.js",
   "scripts": {
     "test": "jasmine"
   },
