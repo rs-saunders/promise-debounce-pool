@@ -131,8 +131,8 @@ Is a promise resolver set in the pool
 
 
 ### Limitations
-Since your setting the promise resolver into the pool ahead of time (without it actually being invoked then),
-when the time comes that you want the promise to invove (promisePool.get) you can't pass any different argumets to it.
+Since you're setting the promise resolver into the pool ahead of time (without it actually being invoked then),
+when the time comes that you want the promise to invoke (promisePool.get) you can't pass any different argumets to it.
 
 i.e. each call to `get` will be the same pre determined action ahead of time.
 
