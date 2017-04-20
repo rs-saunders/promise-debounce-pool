@@ -20,7 +20,7 @@ second call
  
 
 ```js
-var PromisePool = require('promise-pool');
+var PromisePool = require('promise-debounce-pool');
 
 // create a promise resolver function for
 // each of your expensive operations 
