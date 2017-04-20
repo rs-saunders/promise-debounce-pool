@@ -19,7 +19,7 @@ second call
 ## Example Usage
  
 
-```
+```js
 var PromisePool = require('promise-pool');
 
 // create a promise resolver function for
