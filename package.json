@@ -1,6 +1,6 @@
 {
   "name": "promise-debounce-pool",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Maintains a pool of leading edge debounced promises.",
   "repository": {
     "type": "git",
