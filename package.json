@@ -2,11 +2,26 @@
   "name": "promise-debounce-pool",
   "version": "1.2.0",
   "description": "Maintains a pool of leading edge debounced promises.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rs-saunders/promise-debounce-pool.git"
+  },
+  "keywords": [
+    "promise",
+    "promises",
+    "debounce",
+    "debouncing",
+    "pool",
+    "ajax"
+  ],
   "main": "promise-debounce-pool.js",
   "scripts": {
     "test": "jasmine"
   },
   "author": "Richard Saunders <richard@sdevsolutions.com>",
+  "bugs": {
+    "url": "https://github.com/rs-saunders/promise-debounce-pool/issues"
+  },
   "license": "ISC",
   "devDependencies": {
     "jasmine": "^2.5.3"
