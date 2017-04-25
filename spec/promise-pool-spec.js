@@ -86,15 +86,11 @@ describe("PromisePool", function() {
         it('returns same resolved promise with data from the resolver', function(done) {
             var expectedData = 'data returned from promise';
             var promisePool = new PromisePool();
-            var observer = {
-                resolver: function(resolve) {
-                    setTimeout(function() { resolve(expectedData) }, 100);
-                }
-            };
-            var resolverSpy = spyOn(observer, 'resolver').and.callThrough();
 
             jasmine.clock().install();
-            promisePool.set('promise_key_here', resolverSpy);
+            promisePool.set('promise_key_here', function(resolve) {
+                setTimeout(function() { resolve(expectedData) }, 100);
+            });
             promisePool.get('promise_key_here')
                 .then(function(actualData) {
                     expect(actualData).toBe(expectedData);
@@ -212,7 +208,7 @@ describe("PromisePool", function() {
                                 });
                         });
                 });
-            });
+        });
 
         it('returns new resolved promises with data from the resolver', function(done) {
             var increment = 0;
@@ -266,7 +262,7 @@ describe("PromisePool", function() {
                 }, 100);
             });
 
-            promisePool.set('promiseB', function (resolve, reject) {
+            promisePool.set('promiseB', function (resolve) {
                 setTimeout(function () {
                     resolve(expectedDataFromB);
                 }, 100);
@@ -469,8 +465,8 @@ describe("PromisePool", function() {
                 });
 
             promisePool.get('promiseB')
-                .then(function (expectedData) {
-                    expect(expectedData).toBe(expectedData);
+                .then(function (actualData) {
+                    expect(actualData).toBe(expectedData);
                     done();
                 });
 
@@ -480,8 +476,85 @@ describe("PromisePool", function() {
                 .then(function () {
                     throw new Error('promise did not reject');
                 })
-                .catch(function(expectedError) {
-                    expect(expectedError).toBe(expectedError);
+                .catch(function(actualError) {
+                    expect(actualError).toBe(expectedError);
+                });
+
+            jasmine.clock().tick(101);
+            jasmine.clock().uninstall();
+        });
+    });
+
+    describe('Currying resolver', function () {
+        it('passes arguments from get on to curried resolver', function (done) {
+
+            var expectedData = 'foo data with curried arg 1 and curried arg 2';
+
+            var promisePool = new PromisePool();
+            var observer = {
+                yummyCurry: function(curriedArg1, curriedArg2) {
+                    return function resolver(resolve) {
+                        resolve('foo data ' + curriedArg1 + ' ' + curriedArg2);
+                    };
+                }
+            };
+
+            var currySpy = spyOn(observer, 'yummyCurry').and.callThrough();
+
+            promisePool.set('foo', currySpy);
+
+            promisePool.get('foo', 'with curried arg 1', 'and curried arg 2')
+                .then(function (actualData) {
+                    expect(currySpy).toHaveBeenCalledWith('with curried arg 1', 'and curried arg 2');
+                    expect(actualData).toBe(expectedData);
+                    done();
+                });
+        });
+
+        it('returns a rejected promise if resolver is not curried', function (done) {
+            var promisePool = new PromisePool();
+            promisePool.set('promise_key_here', function() {
+                return 'not_a_resolver_function';
+            });
+            promisePool.get('promise_key_here', 'some_curried_arg')
+                .then(function () {
+                    throw new Error('promise did not reject');
+                })
+                .catch(function (actualError) {
+                    expect(actualError.name).toBe('TypeError');
+                    expect(actualError.message).toBe(
+                        'Curried promise resolver not_a_resolver_function is not a function for key promise_key_here'
+                    );
+                    done();
+                });
+        });
+    });
+
+    describe('Currying resolver, multiple calls while pending', function () {
+        it('share the same promise with data from the first call', function(done) {
+            var expectedDataFromCall1 = 'data returned from promise with data from call 1';
+            var promisePool = new PromisePool();
+
+            jasmine.clock().install();
+            promisePool.set('promise_key_here', function yummyCurry(curriedArg) {
+                return function resolver(resolve) {
+                    resolve('data returned from promise ' + curriedArg)
+                }
+            });
+            promisePool.get('promise_key_here', 'with data from call 1')
+                .then(function(actualData) {
+                    expect(actualData).toBe(expectedDataFromCall1);
+                });
+
+            promisePool.get('promise_key_here', 'with data from call 2')
+                .then(function(actualData) {
+                    expect(actualData).toBe(expectedDataFromCall1);
+                });
+
+            promisePool.get('promise_key_here', 'with data from call 3')
+                .then(function(actualData) {
+                    expect(actualData).toBe(expectedDataFromCall1);
+                    done();
                 });
 
             jasmine.clock().tick(101);
