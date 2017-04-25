@@ -104,15 +104,41 @@ npm test
 Set the promise resolver
 
 `key` used to identify the promise when getting/setting \
-`fn` resolver function used when creating a new promise for this key
+`fn` resolver function used when creating a new promise for this key. e.g.\
+```js
+promisePool.set('someKey', function(resolve, reject) {
+    //...
+    resolve();
+})
+```
+
+`fn` can optionally be curried if you want to pass other arguments to it when it is invoked.
+In this case the function passed to `set` must return the resolver function.
+
+```js
+promisePool.set('someKey', function yummyCurry(curriedArg1, curriedArg2) {
+    return function resolver(resolve, reject) {
+        //...
+        resolve();
+    };
+});
+
+promisePool.get('someKey', 'curriedValue1', 'curriedValue2')
+    .then(
+        //...
+     );
+```
+
 
 
 ##### get
-` var promise = promisePool.get(key)`
+` var promise = promisePool.get(key, [curriedArg], [...])`
 
 Get a promise from the pool
 
-`key` used to identify the promise when getting/setting
+`key` used to identify the promise when getting/setting \
+Optionally you can pass multiple `curriedArg` which will be passed on to the curried promise resolver.
+If you pass more arguments to get then you must curry the resolver when.
 
 If you call `get` with a given `key`, it returns you a `promise` based on the following:
 1) is there already a pending promise for this `key`, if so return it
@@ -120,6 +146,26 @@ If you call `get` with a given `key`, it returns you a `promise` based on the fo
    onto the pending promise so it happens synchronously
 3) create a new promise for this key
 
+**Note**: since multiple calls share pending promises, if you make multiple calls with different curried args
+while the first is still pending, then the other calls will still share the first call's promise and curried args. e.g.
+
+```js
+promisePool.set('someKey', function yummyCurry(curriedArg1, curriedArg2) {
+    return function resolver(resolve, reject) {
+        setTimeout(function() { resolve() }, 1000);
+    };
+});
+
+var call1 = promisePool.get('someKey', 'curriedValue1', 'curriedValue2')
+    .then(
+        //...
+     );
+
+var call2 = promisePool.get('someKey', 'curriedValue3', 'curriedValue4')
+    .then(
+        // ... (data from call1 with call1's curried args, since call1 was stil pending)
+     );
+```
 
 ##### isSet
 ` var isSet = promisePool.isSet(key)`
@@ -128,11 +174,3 @@ Is a promise resolver set in the pool
 
 `key` used to identify the promise in the pool \
 `isSet` returns a boolean
-
-
-### Limitations
-Since you're setting the promise resolver into the pool ahead of time (without it actually being invoked then),
-when the time comes that you want the promise to invoke (promisePool.get) you can't pass any different argumets to it.
-
-i.e. each call to `get` will be the same pre determined action ahead of time.
-
