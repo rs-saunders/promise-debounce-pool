@@ -14,16 +14,23 @@
     "pool",
     "ajax"
   ],
-  "main": "promise-debounce-pool.js",
+  "main": "promise-debounce-pool.min.js",
   "scripts": {
-    "test": "jasmine"
+    "test": "jasmine",
+    "minify": "uglifyjs ./promise-debounce-pool.js -c -m --source-map \"filename='promise-debounce-pool.min.map'\" -o ./promise-debounce-pool.min.js"
   },
   "author": "Richard Saunders <richard@sdevsolutions.com>",
+  "files": [
+    "promise-debounce-pool.js",
+    "promise-debounce-pool.min.js",
+    "promise-debounce-pool.min.map"
+  ],
   "bugs": {
     "url": "https://github.com/rs-saunders/promise-debounce-pool/issues"
   },
   "license": "ISC",
   "devDependencies": {
-    "jasmine": "^2.5.3"
+    "jasmine": "^2.5.3",
+    "uglify-js": "^3.1.1"
   }
 }

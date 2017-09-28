@@ -58,20 +58,20 @@ var barCall1 = promisePool.get('bar') //waits until fooCall1 promise resolved/re
         //...
     }); 
     
-var barCall2 = promisePool.get('bar'); //returns the same pending bar promise (barCall1)
+var barCall2 = promisePool.get('bar') //returns the same pending bar promise (barCall1)
     .then(function(barData) {
         //... (same data from barCall1)
     }); 
 
 setTimeout(function() {
 
- var fooCall3 = promisePool.get('foo'); //starts a new foo promise (since previous fooCall1 promise has now resolved)
+ var fooCall3 = promisePool.get('foo') //starts a new foo promise (since previous fooCall1 promise has now resolved)
     .then(function(fooData) {
         //... (data from new fooCall3 promise)
     }); 
 
 
- var barCall3 = promisePool.get('bar'); //returns the same fooCall1 promise from before, its still pending
+ var barCall3 = promisePool.get('bar') //returns the same fooCall1 promise from before, its still pending
     .then(function(barData) {
         //... (same data from barCall1)
     }); 
