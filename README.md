@@ -17,20 +17,21 @@ i.e. The chained promise does not fail if the previous promise fails, nor does t
 second call
 
 ## Example Usage
- 
+
+[![Try promise-debounce-pool on RunKit](https://badge.runkitcdn.com/promise-debounce-pool.svg)](https://npm.runkit.com/promise-debounce-pool)
 
 ```js
-var PromisePool = require('promise-debounce-pool');
+var PromisePool = require("promise-debounce-pool");
 
 // create a promise resolver function for
-// each of your expensive operations 
+// each of your expensive operations
 
 var expensiveFooOperation = function(resolve, reject) {
-   setTimeout(function() { resolve('foo data') }, 1000);
+   setTimeout(function() { resolve('foo data ' + Math.random()) }, 1000);
 };
 
 var expensiveBarOperation = function(resolve, reject) {
-   setTimeout(function() { resolve('bar data') }, 1000);
+   setTimeout(function() { resolve('bar data ' + Math.random()) }, 1000);
 };
 
 // create an instance of the pool
@@ -45,36 +46,36 @@ promisePool.set('bar', expensiveBarOperation);
 
 var fooCall1 = promisePool.get('foo') //starts a new foo promise
     .then(function(fooData) {
-         //...
-    }); 
+         console.log('fooCall1: ' + fooData);
+    });
 
 var fooCall2 = promisePool.get('foo') //returns the same pending foo promise (fooCall1)
     .then(function(fooData) {
-        //... (same data from fooCall1)
-    }); 
-    
+        console.log('fooCall2: ' + fooData); //same data from fooCall1
+    });
+
 var barCall1 = promisePool.get('bar') //waits until fooCall1 promise resolved/rejected then creates a new bar promise
     .then(function(barData) {
-        //...
-    }); 
-    
+        console.log('barCall1: ' + barData);
+    });
+
 var barCall2 = promisePool.get('bar') //returns the same pending bar promise (barCall1)
     .then(function(barData) {
-        //... (same data from barCall1)
-    }); 
+        console.log('barCall2: ' + barData); // same data from barCall1
+    });
 
 setTimeout(function() {
 
  var fooCall3 = promisePool.get('foo') //starts a new foo promise (since previous fooCall1 promise has now resolved)
     .then(function(fooData) {
-        //... (data from new fooCall3 promise)
-    }); 
+        console.log('fooCall3: ' + fooData); // data from new fooCall3 promise
+    });
 
 
  var barCall3 = promisePool.get('bar') //returns the same fooCall1 promise from before, its still pending
     .then(function(barData) {
-        //... (same data from barCall1)
-    }); 
+        console.log('barCall3: ' + barData); // same data from barCall1
+    });
 
 }, 1500);
 
@@ -174,3 +175,7 @@ Is a promise resolver set in the pool
 
 `key` used to identify the promise in the pool \
 `isSet` returns a boolean
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
